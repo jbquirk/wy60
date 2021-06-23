@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Added hack to fix issue on concurrent computers and VCF mode John Quirk 2012
  */
 
 #include "wy60.h"
@@ -1447,7 +1448,7 @@ static int setupterm(const char *term, int fildes, int *errret) {
     } else {
       *termDefs[i].variable = NULL;
     }
-  }
+  } 
   return;
 }
 
@@ -1511,7 +1512,7 @@ static char *tparm(const char *str, ...) {
             args[i].u.iArg            = va_arg(argPtr, int);
           }
         }
-      }
+      }   
       for (src = str; *src; src++) {
         if ((ch                       = *src) != '%') {
           /* All non-command sequences are output verbatim.                  */
@@ -1525,7 +1526,7 @@ static char *tparm(const char *str, ...) {
           width                       = 0;
           precision                   = 0;
           colon                       = 0;
-        loop:
+        loop:    
           switch (*++src) {
           case '\000': /* Unexpected end of input string.                    */
             src--;
@@ -3682,7 +3683,7 @@ static void escape(int pty,char ch) {
     setWriteProtection(0);
     clearScreen();
     break;
-  case '+': /* Clears the screen to spaces; protect submode is turned off   */
+  case '+': /* Clears the screen to spaces; protect submode is turned off    */
     logDecode("disableProtected() ");
     logDecode("clearScreen()");
     setProtected(0);
@@ -4419,7 +4420,8 @@ static void outputCharacter(int pty, char ch) {
               (ch & T_ALL) & T_UNDERSCORE ? " UNDERSCORE" : "",
               (ch & T_ALL) & T_BLINK      ? " BLINK"      : "",
               (ch & T_ALL) & T_BLANK      ? " BLANK"      : "");
-    setAttributes(ch);
+    if (ch != '\r') // added by jquirk to fix a bug on the concurrent computers
+    	setAttributes(ch);
     mode                 = E_NORMAL;
     logDecodeFlush();
     break;
